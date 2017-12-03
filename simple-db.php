@@ -423,8 +423,6 @@
 			return $this->basePath.DIRECTORY_SEPARATOR.$tableName;
 		}
 
-		#######################################################################################################################################
-
 		### 테이블에 한 행을 기록함
 		### e.g. self::fputs($fp, $contents);
 		private static function fputs($fp, $contents){
