@@ -29,13 +29,13 @@
 		}
 	});
 
-	$rows = $db->updateRow('users', ['password' => 'secret'], function($row){return true;
+	$rows = $db->updateRow('users', ['password' => 'secret'], function($row){
 		if($row['no'] < 2){
 			return true;
 		}else{
 			return false;
 		}
-	},4);
+	}, 4);
 
 	$rows = $db->selectRow('users', null, function($row){
 		if($row['no'] < 10){
