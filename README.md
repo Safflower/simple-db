@@ -1,6 +1,6 @@
 # SimpleDB
 
-Simple Database Management System (Non SQL) for PHP
+Simple Database Management System for PHP (Non SQL)
 
 
 ## How to use?
