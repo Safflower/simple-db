@@ -25,7 +25,7 @@
 		### e.g. $db->setBasePath(__DIR__.'/@database');
 		public function setBasePath($path){
 			if(false === ($realPath = realpath($path))){
-				trigger_error('데이터베이스의 경로가 존재하지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not exists.', E_USER_WARNING);
 				return false;
 			}
 
@@ -45,12 +45,12 @@
 		### e.g. $db->createTable('users', ['no', 'username', 'password']);
 		public function createTable($tableName, $columnName = null){
 			if(!$this->checkBasePath()){
-				trigger_error('데이터베이스의 경로가 설정되지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('테이블의 이름이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table name is not valid.', E_USER_WARNING);
 				return false;
 			}
 
@@ -61,7 +61,7 @@
 
 				foreach($columnName as $name){
 					if(!is_string($name) || !preg_match($this->columnNamingRule, $name)){
-						trigger_error('열의 이름이 유효하지 않습니다.', E_USER_WARNING);
+						trigger_error('Column name is not valid.', E_USER_WARNING);
 						return false;
 					}
 				}
@@ -70,23 +70,23 @@
 			$tablePath = $this->getTablePath($tableName);
 
 			if(isset($tablePath{259})){
-				trigger_error('테이블의 경로가 너무 깁니다.', E_USER_WARNING);
+				trigger_error('Table name is too long.', E_USER_WARNING);
 				return false;
 			}
 
 			if(is_file($tablePath)){
-				trigger_error('테이블이 이미 존재합니다.', E_USER_WARNING);
+				trigger_error('Table already exists.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!touch($tablePath)){
-				trigger_error('테이블 파일의 생성을 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to create table file.', E_USER_WARNING);
 				return false;
 			}
 
 			if($columnName !== null){
 				if(false === ($fp = fopen($tablePath, 'w'))){
-					trigger_error('테이블 파일을 쓰는데 실패했습니다.', E_USER_WARNING);
+					trigger_error('Failed to write table file.', E_USER_WARNING);
 					return false;
 				}
 				self::fputs($fp, $columnName);
@@ -100,24 +100,24 @@
 		### e.g. $db->dropTable('users');
 		public function dropTable($tableName){
 			if(!$this->checkBasePath()){
-				trigger_error('데이터베이스의 경로가 설정되지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('테이블의 이름이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table name is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			$tablePath = $this->getTablePath($tableName);
 
 			if(!is_file($tablePath)){
-				trigger_error('테이블이 존재하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table is not exists.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!unlink($tablePath)){
-				trigger_error('테이블 파일을 삭제하는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to delete table file.', E_USER_WARNING);
 				return false;
 			}
 
@@ -128,31 +128,31 @@
 		### e.g. $db->truncateTable('users');
 		public function truncateTable($tableName){
 			if(!$this->checkBasePath()){
-				trigger_error('데이터베이스의 경로가 설정되지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('테이블의 이름이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table name is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			$tablePath = $this->getTablePath($tableName);
 
 			if(!is_file($tablePath)){
-				trigger_error('테이블이 존재하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table is not exists.', E_USER_WARNING);
 				return false;
 			}
 
 			if(false === ($fp = fopen($tablePath, 'r'))){
-				trigger_error('테이블 파일을 읽는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
 			$column = self::fgets($fp);
 			fclose($fp);
 
 			if(false === ($fp = fopen($tablePath, 'w'))){
-				trigger_error('테이블 파일을 쓰는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to write table file.', E_USER_WARNING);
 				return false;
 			}
 			self::fputs($fp, $column);
@@ -165,37 +165,37 @@
 		### e.g. $db->insertRow('users', ['no' => '1', 'username' => 'admin', 'password' => '12345']);
 		public function insertRow($tableName, $rowInfo){
 			if(!$this->checkBasePath()){
-				trigger_error('데이터베이스의 경로가 설정되지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('테이블의 이름이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table name is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			$tablePath = $this->getTablePath($tableName);
 
 			if(!is_file($tablePath)){
-				trigger_error('테이블이 존재하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table is not exists.', E_USER_WARNING);
 				return false;
 			}
 
 			if(false === ($fp = fopen($tablePath, 'r'))){
-				trigger_error('테이블 파일을 읽는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
 			$column = self::fgets($fp);
 			fclose($fp);
 
 			if(!is_array($rowInfo)){
-				trigger_error('행의 값이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Row value is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			foreach($rowInfo as $key => $value){
 				if(!is_string($key) || !preg_match($this->columnNamingRule, $key) || !in_array($key, $column, true)){
-					trigger_error('열의 이름이 유효하지 않습니다.', E_USER_WARNING);
+					trigger_error('Column name is not valid.', E_USER_WARNING);
 					return false;
 				}
 			}
@@ -207,7 +207,7 @@
 			}
 
 			if(false === ($fp = fopen($tablePath, 'a'))){
-				trigger_error('테이블 파일을 쓰는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to write table file.', E_USER_WARNING);
 				return false;
 			}
 			self::fputs($fp, $columnBuffer);
@@ -223,24 +223,24 @@
 		### e.g. $db->selectRow('users', ['no', 'username', 'password'], 'callback');
 		public function selectRow($tableName, $columnName = null, $filterCallback = null, $limitCount = -1){
 			if(!$this->checkBasePath()){
-				trigger_error('데이터베이스의 경로가 설정되지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('테이블의 이름이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table name is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			$tablePath = $this->getTablePath($tableName);
 
 			if(!is_file($tablePath)){
-				trigger_error('테이블이 존재하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table is not exists.', E_USER_WARNING);
 				return false;
 			}
 
 			if(false === ($fp = fopen($tablePath, 'r'))){
-				trigger_error('테이블 파일을 읽는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
 			$column = self::fgets($fp);
@@ -258,7 +258,7 @@
 
 				foreach($columnName as $name){
 					if(!is_string($name) || !preg_match($this->columnNamingRule, $name) || !in_array($name, $column, true)){
-						trigger_error('열의 이름이 유효하지 않습니다.', E_USER_WARNING);
+						trigger_error('Column name is not valid.', E_USER_WARNING);
 						return false;
 					}
 				}
@@ -294,24 +294,24 @@
 		### e.g. $db->deleteRow('users', 'callback');
 		public function deleteRow($tableName, $filterCallback = null, $limitCount = -1){
 			if(!$this->checkBasePath()){
-				trigger_error('데이터베이스의 경로가 설정되지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('테이블의 이름이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table name is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			$tablePath = $this->getTablePath($tableName);
 
 			if(!is_file($tablePath)){
-				trigger_error('테이블이 존재하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table is not exists.', E_USER_WARNING);
 				return false;
 			}
 
 			if(false === ($fp = fopen($tablePath, 'r'))){
-				trigger_error('테이블 파일을 읽는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
 			$column = self::fgets($fp);
@@ -323,7 +323,7 @@
 			fclose($fp);
 
 			if(false === ($fp = fopen($tablePath, 'w'))){
-				trigger_error('테이블 파일을 쓰는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to write table file.', E_USER_WARNING);
 				return false;
 			}
 			self::fputs($fp, $column);
@@ -354,24 +354,24 @@
 		### e.g. $db->updateRow('users', ['password' => '12345'], 'callback');
 		public function updateRow($tableName, array $rowInfo, $filterCallback = null, $limitCount = -1){
 			if(!$this->checkBasePath()){
-				trigger_error('데이터베이스의 경로가 설정되지 않습니다.', E_USER_WARNING);
+				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
 			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('테이블의 이름이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table name is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			$tablePath = $this->getTablePath($tableName);
 
 			if(!is_file($tablePath)){
-				trigger_error('테이블이 존재하지 않습니다.', E_USER_WARNING);
+				trigger_error('Table is not exists.', E_USER_WARNING);
 				return false;
 			}
 
 			if(false === ($fp = fopen($tablePath, 'r'))){
-				trigger_error('테이블 파일을 읽는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
 			$column = self::fgets($fp);
@@ -383,19 +383,19 @@
 			fclose($fp);
 
 			if(!is_array($rowInfo)){
-				trigger_error('행의 값이 유효하지 않습니다.', E_USER_WARNING);
+				trigger_error('Row value is not valid.', E_USER_WARNING);
 				return false;
 			}
 
 			foreach($rowInfo as $key => $value){
 				if(!is_string($key) || !preg_match($this->columnNamingRule, $key) || !in_array($key, $column, true)){
-					trigger_error('열의 이름이 유효하지 않습니다.', E_USER_WARNING);
+					trigger_error('Column name is not valid.', E_USER_WARNING);
 					return false;
 				}
 			}
 
 			if(false === ($fp = fopen($tablePath, 'w'))){
-				trigger_error('테이블 파일을 쓰는데 실패했습니다.', E_USER_WARNING);
+				trigger_error('Failed to write table file.', E_USER_WARNING);
 				return false;
 			}
 			self::fputs($fp, $column);
