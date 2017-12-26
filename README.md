@@ -5,21 +5,27 @@ Simple Database Management System for PHP (Non SQL)
 
 ## How to use?
 
-- Make Instance Variable (require)
+- Make a Instance Variable (require)
 ``` php
-# Just make instance variable
+# Just make a instance variable
 $db = new Safflower\SimpleDB();
 # Make instance variable and set a database path
 $db = new Safflower\SimpleDB(__DIR__.'/@database');
 ```
 
-- Set Database Path (require)
+- Set a Database Path (require)
 ``` php
 # Set a database path
 $db->setBasePath(__DIR__.'/@database');
 ```
 
-- Create Table
+- Check the Database Path
+``` php
+# Check the database path if it's valid
+$isValid = $db->checkBasePath();
+```
+
+- Create a Table
 ``` php
 # Create a table with not column
 $db->createTable('users');
@@ -29,25 +35,25 @@ $db->createTable('users', 'no');
 $db->createTable('users', ['no', 'username', 'password']);
 ```
 
-- Drop Table
+- Drop the Table
 ``` php
 # Drop the table
 $db->dropTable('users');
 ```
 
-- Truncate Table
+- Truncate the Table
 ``` php
 # Truncate the table
 $db->truncateTable('users');
 ```
 
-- Insert Row
+- Insert a Row
 ``` php
 # Insert a row
 $db->insertRow('users', ['no' => '1', 'username' => 'admin', 'password' => '12345']);
 ```
 
-- Select Row
+- Select Rows
 ``` php
 # Select rows with all columns
 $db->selectRow('users');
@@ -59,7 +65,7 @@ $db->selectRow('users', ['no', 'username', 'password']);
 $db->selectRow('users', ['no', 'username', 'password'], 'callback');
 ```
 
-- Delete Row
+- Delete Rows
 ``` php
 # Delete all rows
 $db->deleteRow('users');
@@ -67,7 +73,7 @@ $db->deleteRow('users');
 $db->deleteRow('users', 'callback');
 ```
 
-- Update Row
+- Update Rows
 ``` php
 # Update rows
 $db->updateRow('users', ['password' => '12345']);
