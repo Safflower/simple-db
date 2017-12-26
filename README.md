@@ -21,7 +21,7 @@ $db->setBasePath(__DIR__.'/@database');
 
 - Check the Database Path
 ``` php
-# Check the database path if it's valid
+# Check the database path if it's exists
 $isValid = $db->checkBasePath();
 ```
 
