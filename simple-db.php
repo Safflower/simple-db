@@ -3,16 +3,16 @@
 
 	class SimpleDB{
 
-		### 데이터베이스 경로
+		### Database path
 		private $basePath = '';
 
-		### 테이블 이름 명명 규칙
-		private $tableNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]{1,30}$/';
+		### Naming rule regular expression of table
+		private $tableNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
 
-		### 열 이름 명명 규칙
-		private $columnNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]{1,30}$/';
+		### Naming rule regular expression of column
+		private $columnNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
 
-		### 생성자
+		### Make Instance Variable
 		### e.g. $db = new Safflower\SimpleDB();
 		### e.g. $db = new Safflower\SimpleDB(__DIR__.'/@database');
 		public function __construct($basePath = null){
@@ -21,7 +21,7 @@
 			}
 		}
 
-		### 데이터베이스 경로 설정
+		### Set Database Path
 		### e.g. $db->setBasePath(__DIR__.'/@database');
 		public function setBasePath($path){
 			if(false === ($realPath = realpath($path))){
@@ -33,13 +33,13 @@
 			return true;
 		}
 
-		### 데이터베이스 경로 존재 여부 확인
-		### e.g. $db->checkBasePath();
+		### Check the Database Path
+		### e.g. $isExists = $db->checkBasePath();
 		public function checkBasePath(){
-			return isset($this->basePath[0]) && is_dir($this->basePath);
+			return isset($this->basePath{0}) && is_dir($this->basePath);
 		}
 
-		### 테이블 생성
+		### Create a Table
 		### e.g. $db->createTable('users');
 		### e.g. $db->createTable('users', 'no');
 		### e.g. $db->createTable('users', ['no', 'username', 'password']);
@@ -69,6 +69,11 @@
 
 			$tablePath = $this->getTablePath($tableName);
 
+			if(isset($tablePath{259})){
+				trigger_error('테이블의 경로가 너무 깁니다.', E_USER_WARNING);
+				return false;
+			}
+
 			if(is_file($tablePath)){
 				trigger_error('테이블이 이미 존재합니다.', E_USER_WARNING);
 				return false;
@@ -91,7 +96,7 @@
 			return true;
 		}
 
-		### 테이블 삭제
+		### Drop the Table
 		### e.g. $db->dropTable('users');
 		public function dropTable($tableName){
 			if(!$this->checkBasePath()){
@@ -119,7 +124,7 @@
 			return true;
 		}
 
-		### 테이블 비우기
+		### Truncate the Table
 		### e.g. $db->truncateTable('users');
 		public function truncateTable($tableName){
 			if(!$this->checkBasePath()){
@@ -156,7 +161,7 @@
 			return true;
 		}
 
-		### 행 추가
+		### Insert a Row
 		### e.g. $db->insertRow('users', ['no' => '1', 'username' => 'admin', 'password' => '12345']);
 		public function insertRow($tableName, $rowInfo){
 			if(!$this->checkBasePath()){
@@ -211,7 +216,7 @@
 			return true;
 		}
 
-		### 행 선택
+		### Select Rows
 		### e.g. $db->selectRow('users');
 		### e.g. $db->selectRow('users', 'username');
 		### e.g. $db->selectRow('users', ['no', 'username', 'password']);
@@ -284,7 +289,7 @@
 			return $rowBuffer;
 		}
 
-		### 행 삭제
+		### Delete Rows
 		### e.g. $db->deleteRow('users');
 		### e.g. $db->deleteRow('users', 'callback');
 		public function deleteRow($tableName, $filterCallback = null, $limitCount = -1){
@@ -344,7 +349,7 @@
 			return true;
 		}
 
-		### 행 수정
+		### Update Rows
 		### e.g. $db->updateRow('users', ['password' => '12345']);
 		### e.g. $db->updateRow('users', ['password' => '12345'], 'callback');
 		public function updateRow($tableName, array $rowInfo, $filterCallback = null, $limitCount = -1){
@@ -418,19 +423,19 @@
 			return true;
 		}
 
-		### 테이블 파일의 경로를 가져옴
+		### Get the Path of Table
 		### e.g. $db->getTablePath('users');
 		private function getTablePath($tableName){
 			return $this->basePath.DIRECTORY_SEPARATOR.$tableName;
 		}
 
-		### 테이블에 한 행을 기록함
+		### Write the Row in Table
 		### e.g. self::fputs($fp, $contents);
 		private static function fputs($fp, $contents){
 			return fputs($fp, json_encode($contents, JSON_UNESCAPED_UNICODE)."\n");
 		}
 
-		### 테이블에서 한 행을 읽어옴
+		### Read the Row in Table
 		### e.g. self::fgets($fp);
 		private static function fgets($fp){
 			if(false === ($contents = fgets($fp))){
