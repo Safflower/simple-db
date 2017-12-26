@@ -1,4 +1,4 @@
-# SimpleDB
+# Simple DB
 
 Simple Database Management System for PHP (Non SQL)
 
