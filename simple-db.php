@@ -13,6 +13,7 @@
 		private $columnNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]{1,30}$/';
 
 		### 생성자
+		### e.g. $db = SimpleDB();
 		### e.g. $db = SimpleDB(__DIR__.'/@database');
 		public function __construct($basePath = null){
 			if($basePath !== null){
