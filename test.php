@@ -22,27 +22,15 @@
 	$db->insertRow('users', ['no' => ++$no, 'username' => 'jane doe', 'password' => 'zxc456']);
 
 	$db->deleteRow('users', function($row){
-		if($row['username'] === 'root'){
-			return true;
-		}else{
-			return false;
-		}
+		return $row['username'] === 'root';
 	});
 
 	$rows = $db->updateRow('users', ['password' => 'secret'], function($row){
-		if($row['no'] < 2){
-			return true;
-		}else{
-			return false;
-		}
+		return $row['no'] < 2;
 	}, 4);
 
 	$rows = $db->selectRow('users', null, function($row){
-		if($row['no'] < 10){
-			return true;
-		}else{
-			return false;
-		}
+		return $row['no'] < 10;
 	});
 
 	var_dump($rows);
