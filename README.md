@@ -43,7 +43,7 @@ $db->dropTable('users');
 
 - Truncate the Table
 ``` php
-# Truncate the table
+# Truncate the table (This method is faster than deleteRow)
 $db->truncateTable('users');
 ```
 
@@ -63,6 +63,8 @@ $db->selectRow('users', 'username');
 $db->selectRow('users', ['no', 'username', 'password']);
 # Filter in callback function and select rows with three columns
 $db->selectRow('users', ['no', 'username', 'password'], 'callback');
+# Filter in callback function and limit count of result and select rows with three columns
+$db->selectRow('users', ['no', 'username', 'password'], 'callback', 1);
 ```
 
 - Delete Rows
@@ -71,6 +73,8 @@ $db->selectRow('users', ['no', 'username', 'password'], 'callback');
 $db->deleteRow('users');
 # Filter in callback function and delete rows
 $db->deleteRow('users', 'callback');
+# Filter in callback function and limit count of result and delete rows
+$db->deleteRow('users', 'callback', 1);
 ```
 
 - Update Rows
@@ -79,4 +83,6 @@ $db->deleteRow('users', 'callback');
 $db->updateRow('users', ['password' => '12345']);
 # Filter in callback function and update rows
 $db->updateRow('users', ['password' => '12345'], 'callback');
+# Filter in callback function and limit count of result and update rows
+$db->updateRow('users', ['password' => '12345'], 'callback', 1);
 ```
