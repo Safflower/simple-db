@@ -4,13 +4,13 @@
 	class SimpleDB{
 
 		### Database path
-		private $basePath = '';
+		private $basePath = null;
 
 		### Naming rule regular expression of table
-		private $tableNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
+		private static $tableNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
 
 		### Naming rule regular expression of column
-		private $columnNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
+		private static $columnNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
 
 		### Make Instance Variable
 		### e.g. $db = new Safflower\SimpleDB();
@@ -23,13 +23,13 @@
 
 		### Set Database Path
 		### e.g. $db->setBasePath(__DIR__.'/@database');
-		public function setBasePath($path){
-			if(false === ($realPath = realpath($path))){
-				trigger_error('Database path is not exists.', E_USER_WARNING);
+		public function setBasePath($basePath){
+			if(false === ($absPath = realpath($basePath))){
+				trigger_error('Database path is invalid.', E_USER_WARNING);
 				return false;
 			}
 
-			$this->basePath = $realPath;
+			$this->basePath = $absPath;
 			return true;
 		}
 
@@ -49,19 +49,22 @@
 				return false;
 			}
 
-			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('Table name is not valid.', E_USER_WARNING);
+			if(!is_string($tableName) || !self::isValidTableName($tableName)){
+				trigger_error('Table name is invalid.', E_USER_WARNING);
 				return false;
 			}
 
 			if($columnName !== null){
-				if(!is_array($columnName)){
+				if(is_string($columnName)){
 					$columnName = [$columnName];
+				}else if(!is_array($columnName)){
+					trigger_error('Column name is invalid.', E_USER_WARNING);
+					return false;
 				}
 
 				foreach($columnName as $name){
-					if(!is_string($name) || !preg_match($this->columnNamingRule, $name)){
-						trigger_error('Column name is not valid.', E_USER_WARNING);
+					if(!is_string($name) || !self::isValidColumnName($name)){
+						trigger_error('Column name is invalid.', E_USER_WARNING);
 						return false;
 					}
 				}
@@ -104,8 +107,8 @@
 				return false;
 			}
 
-			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('Table name is not valid.', E_USER_WARNING);
+			if(!is_string($tableName) || !self::isValidTableName($tableName)){
+				trigger_error('Table name is invalid.', E_USER_WARNING);
 				return false;
 			}
 
@@ -132,8 +135,8 @@
 				return false;
 			}
 
-			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('Table name is not valid.', E_USER_WARNING);
+			if(!is_string($tableName) || !self::isValidTableName($tableName)){
+				trigger_error('Table name is invalid.', E_USER_WARNING);
 				return false;
 			}
 
@@ -169,8 +172,8 @@
 				return false;
 			}
 
-			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('Table name is not valid.', E_USER_WARNING);
+			if(!is_string($tableName) || !self::isValidTableName($tableName)){
+				trigger_error('Table name is invalid.', E_USER_WARNING);
 				return false;
 			}
 
@@ -189,13 +192,13 @@
 			fclose($fp);
 
 			if(!is_array($rowInfo)){
-				trigger_error('Row value is not valid.', E_USER_WARNING);
+				trigger_error('Row value is invalid.', E_USER_WARNING);
 				return false;
 			}
 
 			foreach($rowInfo as $key => $value){
-				if(!is_string($key) || !preg_match($this->columnNamingRule, $key) || !in_array($key, $column, true)){
-					trigger_error('Column name is not valid.', E_USER_WARNING);
+				if(!is_string($key) || !self::isValidColumnName($key) || !in_array($key, $column, true)){
+					trigger_error('Column name is invalid.', E_USER_WARNING);
 					return false;
 				}
 			}
@@ -221,14 +224,25 @@
 		### e.g. $db->selectRow('users', 'username');
 		### e.g. $db->selectRow('users', ['no', 'username', 'password']);
 		### e.g. $db->selectRow('users', ['no', 'username', 'password'], 'callback');
+		### e.g. $db->selectRow('users', ['no', 'username', 'password'], 'callback', 1);
 		public function selectRow($tableName, $columnName = null, $filterCallback = null, $limitCount = -1){
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
-			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('Table name is not valid.', E_USER_WARNING);
+			if(!is_string($tableName) || !self::isValidTableName($tableName)){
+				trigger_error('Table name is invalid.', E_USER_WARNING);
+				return false;
+			}
+
+			if($filterCallback !== null && !is_callable($filterCallback)){
+				trigger_error('Filter callback function is not callable.', E_USER_WARNING);
+				return false;
+			}
+
+			if(!is_int($limitCount)){
+				trigger_error('Limit count is invalid.', E_USER_WARNING);
 				return false;
 			}
 
@@ -252,13 +266,16 @@
 			fclose($fp);
 
 			if($columnName !== null){
-				if(!is_array($columnName)){
+				if(is_string($columnName)){
 					$columnName = [$columnName];
+				}else if(!is_array($columnName)){
+					trigger_error('Column name is invalid.', E_USER_WARNING);
+					return false;
 				}
 
 				foreach($columnName as $name){
-					if(!is_string($name) || !preg_match($this->columnNamingRule, $name) || !in_array($name, $column, true)){
-						trigger_error('Column name is not valid.', E_USER_WARNING);
+					if(!is_string($name) || !self::isValidColumnName($name) || !in_array($name, $column, true)){
+						trigger_error('Column name is invalid.', E_USER_WARNING);
 						return false;
 					}
 				}
@@ -276,7 +293,7 @@
 					$buffer[$name] = $row[$count];
 				}
 
-				if($filterCallback !== null && is_callable($filterCallback) && $filterCallback($buffer) !== true){
+				if($filterCallback !== null && $filterCallback($buffer) !== true){
 					continue;
 				}
 
@@ -292,14 +309,25 @@
 		### Delete Rows
 		### e.g. $db->deleteRow('users');
 		### e.g. $db->deleteRow('users', 'callback');
+		### e.g. $db->deleteRow('users', 'callback', 1);
 		public function deleteRow($tableName, $filterCallback = null, $limitCount = -1){
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
-			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('Table name is not valid.', E_USER_WARNING);
+			if(!is_string($tableName) || !self::isValidTableName($tableName)){
+				trigger_error('Table name is invalid.', E_USER_WARNING);
+				return false;
+			}
+
+			if($filterCallback !== null && !is_callable($filterCallback)){
+				trigger_error('Filter callback function is not callable.', E_USER_WARNING);
+				return false;
+			}
+
+			if(!is_int($limitCount)){
+				trigger_error('Limit count is invalid.', E_USER_WARNING);
 				return false;
 			}
 
@@ -334,7 +362,7 @@
 					$buffer[$name] = $row[++$count];
 				}
 
-				if($filterCallback === null || is_callable($filterCallback) && $filterCallback($buffer) === true){
+				if($filterCallback === null || $filterCallback($buffer) === true){
 					continue;
 				}
 
@@ -352,14 +380,25 @@
 		### Update Rows
 		### e.g. $db->updateRow('users', ['password' => '12345']);
 		### e.g. $db->updateRow('users', ['password' => '12345'], 'callback');
-		public function updateRow($tableName, array $rowInfo, $filterCallback = null, $limitCount = -1){
+		### e.g. $db->updateRow('users', ['password' => '12345'], 'callback', 1);
+		public function updateRow($tableName, $rowInfo, $filterCallback = null, $limitCount = -1){
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
 			}
 
-			if(!is_string($tableName) || !preg_match($this->tableNamingRule, $tableName)){
-				trigger_error('Table name is not valid.', E_USER_WARNING);
+			if(!is_string($tableName) || !self::isValidTableName($tableName)){
+				trigger_error('Table name is invalid.', E_USER_WARNING);
+				return false;
+			}
+
+			if($filterCallback !== null && !is_callable($filterCallback)){
+				trigger_error('Filter callback function is not callable.', E_USER_WARNING);
+				return false;
+			}
+
+			if(!is_int($limitCount)){
+				trigger_error('Limit count is invalid.', E_USER_WARNING);
 				return false;
 			}
 
@@ -383,13 +422,13 @@
 			fclose($fp);
 
 			if(!is_array($rowInfo)){
-				trigger_error('Row value is not valid.', E_USER_WARNING);
+				trigger_error('Row value is invalid.', E_USER_WARNING);
 				return false;
 			}
 
 			foreach($rowInfo as $key => $value){
-				if(!is_string($key) || !preg_match($this->columnNamingRule, $key) || !in_array($key, $column, true)){
-					trigger_error('Column name is not valid.', E_USER_WARNING);
+				if(!is_string($key) || !self::isValidColumnName($key) || !in_array($key, $column, true)){
+					trigger_error('Column name is invalid.', E_USER_WARNING);
 					return false;
 				}
 			}
@@ -407,7 +446,7 @@
 					$buffer[$name] = $row[++$count];
 				}
 
-				if($filterCallback === null || is_callable($filterCallback) && $filterCallback($buffer) === true){
+				if($filterCallback === null || $filterCallback($buffer) === true){
 					if($limitCount < 0 || ++$count2 <= $limitCount){
 						foreach($rowInfo as $key => $value){
 							$buffer[$key] = $value;
@@ -424,9 +463,21 @@
 		}
 
 		### Get the Path of Table
-		### e.g. $db->getTablePath('users');
+		### e.g. $this->getTablePath('users');
 		private function getTablePath($tableName){
 			return $this->basePath.DIRECTORY_SEPARATOR.$tableName;
+		}
+
+		### Check the Table Name if Valid
+		### e.g. self::isValidTableName('users');
+		private static function isValidTableName($tableName){
+			return preg_match(self::$tableNamingRule, $tableName);
+		}
+
+		### Check the Column Name if Valid
+		### e.g. self::isValidColumnName('username');
+		private static function isValidColumnName($columnName){
+			return preg_match(self::$columnNamingRule, $columnName);
 		}
 
 		### Write the Row in Table
