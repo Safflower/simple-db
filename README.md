@@ -1,6 +1,8 @@
 # Simple DB
 
-Simple Database Management System for PHP (Non SQL)
+It's simple database management system for PHP.
+
+Simple DB can be controlled by methods of PHP class without using SQL.
 
 
 ## How to use?
