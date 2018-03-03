@@ -7,15 +7,15 @@
 		private $basePath = null;
 
 		### Naming rule regular expression of table
-		private static $tableNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
+		const TABLE_NAMING_RULE = '/\A[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+\z/';
 
 		### Naming rule regular expression of column
-		private static $columnNamingRule = '/^[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+$/';
+		const COLUMN_NAMING_RULE = '/\A[a-zA-Z0-9\!@#\$%\^&\-_\+\=\. ]+\z/';
 
 		### Make Instance Variable
 		### e.g. $db = new Safflower\SimpleDB();
 		### e.g. $db = new Safflower\SimpleDB(__DIR__.'/@database');
-		public function __construct($basePath = null){
+		public function __construct(string $basePath = null) {
 			if($basePath !== null){
 				$this->setBasePath($basePath);
 			}
@@ -23,7 +23,15 @@
 
 		### Set Database Path
 		### e.g. $db->setBasePath(__DIR__.'/@database');
-		public function setBasePath($basePath){
+		public function setBasePath(string $basePath): bool {
+			$folders = preg_split('/\/|\\\\/', $basePath);
+			$tempPath = '';
+			foreach($folders as $folder){
+				$tempPath .= $folder . DIRECTORY_SEPARATOR;
+				is_dir($tempPath) or mkdir($tempPath);
+			}
+			unset($folders, $folder, $tempPath);
+
 			if(false === ($absPath = realpath($basePath))){
 				trigger_error('Database path is invalid.', E_USER_WARNING);
 				return false;
@@ -35,7 +43,7 @@
 
 		### Check the Database Path
 		### e.g. $isExists = $db->checkBasePath();
-		public function checkBasePath(){
+		public function checkBasePath(): bool {
 			return isset($this->basePath{0}) && is_dir($this->basePath);
 		}
 
@@ -43,7 +51,7 @@
 		### e.g. $db->createTable('users');
 		### e.g. $db->createTable('users', 'no');
 		### e.g. $db->createTable('users', ['no', 'username', 'password']);
-		public function createTable($tableName, $columnName = null){
+		public function createTable(string $tableName, $columnName = null): bool {
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
@@ -101,7 +109,7 @@
 
 		### Drop the Table
 		### e.g. $db->dropTable('users');
-		public function dropTable($tableName){
+		public function dropTable(string $tableName): bool {
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
@@ -129,7 +137,7 @@
 
 		### Truncate the Table
 		### e.g. $db->truncateTable('users');
-		public function truncateTable($tableName){
+		public function truncateTable(string $tableName): bool {
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
@@ -151,14 +159,25 @@
 				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
-			$column = self::fgets($fp);
+
+			$res = self::fgets($fp);
+			if($res['status'] === false){
+				trigger_error('Failed to read column information.', E_USER_WARNING);
+				return false;
+			}
+			$column = $res['contents'];
+			unset($res);
 			fclose($fp);
 
 			if(false === ($fp = fopen($tablePath, 'w'))){
 				trigger_error('Failed to write table file.', E_USER_WARNING);
 				return false;
 			}
-			self::fputs($fp, $column);
+
+			if(!self::fputs($fp, $column)){
+				trigger_error('Failed to write column information.', E_USER_WARNING);
+				return false;
+			}
 			fclose($fp);
 
 			return true;
@@ -166,7 +185,7 @@
 
 		### Insert a Row
 		### e.g. $db->insertRow('users', ['no' => '1', 'username' => 'admin', 'password' => '12345']);
-		public function insertRow($tableName, $rowInfo){
+		public function insertRow(string $tableName, array $rowInfo): bool {
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
@@ -188,7 +207,14 @@
 				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
-			$column = self::fgets($fp);
+
+			$res = self::fgets($fp);
+			if($res['status'] === false){
+				trigger_error('Failed to read column information.', E_USER_WARNING);
+				return false;
+			}
+			$column = $res['contents'];
+			unset($res);
 			fclose($fp);
 
 			if(!is_array($rowInfo)){
@@ -225,7 +251,7 @@
 		### e.g. $db->selectRow('users', ['no', 'username', 'password']);
 		### e.g. $db->selectRow('users', ['no', 'username', 'password'], 'callback');
 		### e.g. $db->selectRow('users', ['no', 'username', 'password'], 'callback', 1);
-		public function selectRow($tableName, $columnName = null, $filterCallback = null, $limitCount = -1){
+		public function selectRow(string $tableName, $columnName = null, $filterCallback = null, int $limitCount = -1){
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
@@ -257,11 +283,22 @@
 				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
-			$column = self::fgets($fp);
-			while(false !== ($row = self::fgets($fp))){
-				if($row !== null){
-					$rows[] = $row;
+
+			$res = self::fgets($fp);
+			if($res['status'] === false){
+				trigger_error('Failed to read column information.', E_USER_WARNING);
+				return false;
+			}
+			$column = $res['contents'];
+			unset($res);
+
+			while(true){
+				$res = self::fgets($fp);
+				if($res['status'] === false){
+					break;
 				}
+				$rows[] = $res['contents'];
+				unset($res);
 			}
 			fclose($fp);
 
@@ -310,7 +347,7 @@
 		### e.g. $db->deleteRow('users');
 		### e.g. $db->deleteRow('users', 'callback');
 		### e.g. $db->deleteRow('users', 'callback', 1);
-		public function deleteRow($tableName, $filterCallback = null, $limitCount = -1){
+		public function deleteRow(string $tableName, $filterCallback = null, int $limitCount = -1): bool {
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
@@ -342,11 +379,22 @@
 				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
-			$column = self::fgets($fp);
-			while(false !== ($row = self::fgets($fp))){
-				if($row !== null){
-					$rows[] = $row;
+
+			$res = self::fgets($fp);
+			if($res['status'] === false){
+				trigger_error('Failed to read column information.', E_USER_WARNING);
+				return false;
+			}
+			$column = $res['contents'];
+			unset($res);
+
+			while(true){
+				$res = self::fgets($fp);
+				if($res['status'] === false){
+					break;
 				}
+				$rows[] = $res['contents'];
+				unset($res);
 			}
 			fclose($fp);
 
@@ -381,7 +429,7 @@
 		### e.g. $db->updateRow('users', ['password' => '12345']);
 		### e.g. $db->updateRow('users', ['password' => '12345'], 'callback');
 		### e.g. $db->updateRow('users', ['password' => '12345'], 'callback', 1);
-		public function updateRow($tableName, $rowInfo, $filterCallback = null, $limitCount = -1){
+		public function updateRow(string $tableName, array $rowInfo, $filterCallback = null, int $limitCount = -1): bool {
 			if(!$this->checkBasePath()){
 				trigger_error('Database path is not set.', E_USER_WARNING);
 				return false;
@@ -413,11 +461,22 @@
 				trigger_error('Failed to read table file.', E_USER_WARNING);
 				return false;
 			}
-			$column = self::fgets($fp);
-			while(false !== ($row = self::fgets($fp))){
-				if($row !== null){
-					$rows[] = $row;
+
+			$res = self::fgets($fp);
+			if($res['status'] === false){
+				trigger_error('Failed to read column information.', E_USER_WARNING);
+				return false;
+			}
+			$column = $res['contents'];
+			unset($res);
+
+			while(true){
+				$res = self::fgets($fp);
+				if($res['status'] === false){
+					break;
 				}
+				$rows[] = $res['contents'];
+				unset($res);
 			}
 			fclose($fp);
 
@@ -464,34 +523,45 @@
 
 		### Get the Path of Table
 		### e.g. $this->getTablePath('users');
-		private function getTablePath($tableName){
+		private function getTablePath(string $tableName): string {
 			return $this->basePath.DIRECTORY_SEPARATOR.$tableName;
 		}
 
 		### Check the Table Name if Valid
 		### e.g. self::isValidTableName('users');
-		private static function isValidTableName($tableName){
-			return preg_match(self::$tableNamingRule, $tableName);
+		private static function isValidTableName(string $tableName): bool {
+			return preg_match(self::TABLE_NAMING_RULE, $tableName);
 		}
 
 		### Check the Column Name if Valid
 		### e.g. self::isValidColumnName('username');
-		private static function isValidColumnName($columnName){
-			return preg_match(self::$columnNamingRule, $columnName);
+		private static function isValidColumnName(string $columnName): bool {
+			return preg_match(self::COLUMN_NAMING_RULE, $columnName);
 		}
 
 		### Write the Row in Table
 		### e.g. self::fputs($fp, $contents);
-		private static function fputs($fp, $contents){
+		private static function fputs($fp, array $contents): bool {
+			if(!is_resource($fp)){
+				trigger_error('File pointer is invalid.', E_USER_WARNING);
+				return false;
+			}
+
 			return fputs($fp, json_encode($contents, JSON_UNESCAPED_UNICODE)."\n");
 		}
 
 		### Read the Row in Table
 		### e.g. self::fgets($fp);
-		private static function fgets($fp){
-			if(false === ($contents = fgets($fp))){
-				return false;
+		private static function fgets($fp): array {
+			if(!is_resource($fp)){
+				trigger_error('File pointer is invalid.', E_USER_WARNING);
+				return ['status' => false];
 			}
-			return json_decode($contents);
+
+			if(false === ($contents = fgets($fp))){
+				return ['status' => false];
+			}
+
+			return ['status' => true, 'contents' => json_decode($contents)];
 		}
 	}
